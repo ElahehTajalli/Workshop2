@@ -11,7 +11,7 @@ class LoginSerializers(serializers.Serializer):
 class ShowLogin(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email']
+        exclude = ['password', 'groups', 'user_permissions']
 
 
 class addUserSerializer(serializers.ModelSerializer):

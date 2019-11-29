@@ -16,15 +16,20 @@ class conversation(APIView):
         })
 
     def post(self, request):
-        c = addConversationSerializer(data=request.data)
-        if c.is_valid():
-            c.save()
-            return Response("your conversation is created!")
-
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'message': 'Send login request'
+            }, status=401)
         else:
-            return Response({
-                'errors': c.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+            c = addConversationSerializer(data=request.data, context={'user': request.user})
+            if c.is_valid():
+                c.save()
+                return Response("your conversation is created!")
+
+            else:
+                return Response({
+                    'errors': c.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class message_view(APIView):
@@ -68,22 +73,26 @@ class message_view(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
-        print(request.data)
-        s = UpdateMessageSerializer(
-            instance=Messages.objects.get(id=request.data['id']),
-            data=request.data,
-
-        )
-        if s.is_valid():
-            s.save()
-            return Response(
-                {
-                    "message": "Your message updated successfully"
-                }
-            )
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'message': 'Send login request'
+            }, status=401)
         else:
-            return Response(
-                {
-                    "errors": s.errors
-                }
-            )
+            n = Messages.objects.filter(id=request.data['id'], sender=request.user)
+            if n:
+                s = UpdateMessageSerializer(
+                    instance=Messages.objects.get(id=request.data['id']),
+                    data=request.data,
+
+                )
+                if s.is_valid():
+                    s.save()
+                    return Response(
+                        {"message": "Your message updated successfully"}
+                    )
+                else:
+                    return Response({"errors": s.errors})
+            else:
+                return Response(
+                    {"message": "You're not allowed to edit other messages or This message doesn't exist!"}
+                )

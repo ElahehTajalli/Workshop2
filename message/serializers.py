@@ -16,6 +16,17 @@ class addConversationSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = ['name', 'members']
 
+    def create(self, validated_data):
+        print(type(validated_data['members']))
+        c = Conversation(
+            name=validated_data['name'],
+        )
+        c.save()
+        c.members.add(self.context['user'])
+        for v in validated_data['members']:
+            c.members.add(v)
+        return c
+
 
 class UpdateMessageSerializer(serializers.ModelSerializer):
     class Meta:

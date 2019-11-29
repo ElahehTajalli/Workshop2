@@ -19,7 +19,7 @@ class login_view(APIView):
 
             if user:
                 login(request, user)
-                u = ShowLogin(request.data)
+                u = ShowLogin(user)
                 r = {
                     'users': u.data
                 }
