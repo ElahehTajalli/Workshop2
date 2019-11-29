@@ -46,21 +46,26 @@ class message_view(APIView):
             )
 
     def post(self, request):
-        s = AddMessageSerializer(
-            data=request.data,
-            context={
-                'user': request.user
-            })
-        if s.is_valid():
-            s.save()
-            r = {
-                'message': 'Your message saved!'
-            }
-            return Response(r)
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'message': 'Send login request'
+            }, status=401)
         else:
-            return Response({
-                'errors': s.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+            s = AddMessageSerializer(
+                data=request.data,
+                context={
+                    'user': request.user
+                })
+            if s.is_valid():
+                s.save()
+                r = {
+                    'message': 'Your message saved!'
+                }
+                return Response(r)
+            else:
+                return Response({
+                    'errors': s.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
         print(request.data)
